@@ -1,5 +1,7 @@
 # Vega
 
+![A Vega em espera (ciano) e falando (âmbar)](docs/vega.png)
+
 Uma página com rosto holográfico 3D para conversar com o **Claude Code**: chat em vidro, respostas ao vivo, voz, microfone e anexos.
 
 > **Resumo de um minuto**
