@@ -1,0 +1,23 @@
+{
+  "_leia": "Copie este arquivo como config.json (o instalar.bat já faz isso) e mude o que quiser. Depois feche e abra a Vega.",
+
+  "nome": "Vega",
+  "artigo": "a",
+  "usuario": "",
+  "saudacao": "Às suas ordens.",
+  "personalidade": "Calma, direta e prestativa, com um humor seco e leve. Respostas curtas, o essencial primeiro.",
+
+  "idioma": "pt-BR",
+  "voz": "Thalita",
+
+  "cores": {
+    "espera": "#2ad8ff",
+    "pensando": "#8a5cff",
+    "falando": "#ff9a3c"
+  },
+
+  "pasta_trabalho": "",
+  "modo_permissao": "auto",
+  "chrome": true,
+  "porta": 8777
+}

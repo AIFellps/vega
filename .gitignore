@@ -1,0 +1,8 @@
+# configuração de cada pessoa (o modelo é o config.exemplo.json)
+config.json
+
+# anexos, perfil do Edge, prints e registros
+dados/
+
+__pycache__/
+*.pyc

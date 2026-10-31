@@ -1,0 +1,13 @@
+{
+ "name": "Vega",
+ "short_name": "Vega",
+ "start_url": "/",
+ "scope": "/",
+ "display": "standalone",
+ "background_color": "#020409",
+ "theme_color": "#020409",
+ "icons": [
+  { "src": "/icones/vega-180.png", "sizes": "180x180", "type": "image/png" },
+  { "src": "/icones/vega-512.png", "sizes": "512x512", "type": "image/png" }
+ ]
+}

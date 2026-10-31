@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vega">
+<meta name="theme-color" content="#020409">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icones/vega-180.png">
+<title>Vega</title>
+<link rel="icon" type="image/png" sizes="256x256" href="icones/vega.png">
+<link rel="shortcut icon" href="icones/vega.ico">
+<style>
+:root{
+  --fundo:#020409;--vidro:rgba(255,255,255,.055);--vidro-forte:rgba(255,255,255,.085);--borda:rgba(255,255,255,.11);
+  --texto:#e6f4ff;--suave:#9fb4c8;--apagado:#5f758a;--ciano:#2ad8ff;--violeta:#8a5cff;--ambar:#ff9a3c;--c1:42,216,255;--c2:138,92,255;--c3:255,154,60;--ruim:#ff6b7a;
+  --raio:18px;--lateral:286px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--fundo);color:var(--texto);font:14.5px/1.55 "Segoe UI",system-ui,sans-serif;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+#palco{touch-action:none;-webkit-user-select:none;user-select:none}
+:root{--topo:env(safe-area-inset-top,0px);--base:env(safe-area-inset-bottom,0px)}
+button{font:inherit;color:inherit}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:8px}::-webkit-scrollbar-track{background:transparent}
+.vidro{background:var(--vidro);border:1px solid var(--borda);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);
+  box-shadow:0 18px 50px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.07);border-radius:var(--raio)}
+
+/* rosto */
+#palco{position:fixed;inset:0}
+#palco canvas{display:block}
+.vinheta{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 30%,transparent 30%,rgba(0,0,0,.7) 100%)}
+.linhas{position:fixed;inset:0;pointer-events:none;opacity:.06;background:repeating-linear-gradient(0deg,#9fe9ff 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
+#aviso{position:fixed;left:0;right:0;top:28vh;text-align:center;color:var(--apagado);letter-spacing:.2em;font-size:11px;text-transform:uppercase;pointer-events:none;transition:opacity 1s}
+
+/* topo */
+.estado{position:fixed;top:calc(16px + var(--topo));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;
+  padding:7px 16px;border-radius:999px;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;z-index:3}
+.estado i{width:8px;height:8px;border-radius:50%;background:var(--ciano);box-shadow:0 0 12px var(--ciano);transition:.4s}
+.estado b{letter-spacing:.34em;font-weight:600}.estado span{color:var(--suave)}
+.consumo{position:fixed;top:calc(16px + var(--topo));right:16px;display:flex;gap:14px;align-items:center;padding:7px 14px;border-radius:999px;font-size:12px;color:var(--suave);z-index:3}
+.consumo b{color:var(--texto);font-weight:600}
+.barra{width:46px;height:4px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px}
+.barra i{display:block;height:100%;background:linear-gradient(90deg,var(--ciano),var(--violeta))}
+
+/* lateral */
+.lateral{position:fixed;left:12px;top:calc(12px + var(--topo));bottom:calc(12px + var(--base));width:262px;display:flex;flex-direction:column;padding:14px;z-index:4;transition:transform .3s}
+.marca{display:flex;align-items:center;gap:10px;padding:4px 4px 14px}
+.marca .sinal{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#bff4ff 0 8%,var(--ciano) 18%,rgba(var(--c1),.15) 45%,transparent 70%);box-shadow:0 0 18px rgba(var(--c1),.45)}
+.marca b{letter-spacing:.38em;font-size:13px}
+.marca button{margin-left:auto}
+.nova{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border-radius:12px;border:1px solid rgba(var(--c1),.35);
+  background:linear-gradient(180deg,rgba(var(--c1),.14),rgba(var(--c1),.05));cursor:pointer;transition:.2s}
+.nova:hover{background:rgba(var(--c1),.2)}
+.busca{margin:10px 0 6px;width:100%;padding:9px 12px;border-radius:11px;border:1px solid var(--borda);background:rgba(0,0,0,.25);color:var(--texto);outline:none;font:inherit}
+.busca:focus{border-color:rgba(var(--c1),.45)}
+.lista{flex:1;overflow:auto;margin:4px -6px 0;padding:0 6px}
+.item{display:block;width:100%;text-align:left;padding:9px 10px;border-radius:11px;border:1px solid transparent;background:none;cursor:pointer;margin-bottom:2px;transition:.15s}
+.item:hover{background:rgba(255,255,255,.05)}
+.item.atual{background:rgba(var(--c1),.09);border-color:rgba(var(--c1),.28)}
+.item .t{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px}
+.item .q{font-size:11.5px;color:var(--apagado)}
+.item .fora{color:var(--ambar);font-size:11px;margin-left:6px}
+.icone{width:34px;height:34px;display:inline-grid;place-items:center;border-radius:10px;border:1px solid var(--borda);background:rgba(255,255,255,.04);cursor:pointer;transition:.15s;flex:none}
+.icone:hover{background:rgba(255,255,255,.1)}
+.icone.ligado{border-color:rgba(var(--c1),.5);background:rgba(var(--c1),.14);color:#bff4ff}
+.icone svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* chat */
+.chat{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));height:var(--chat-alto,40vh);width:min(900px,calc(100vw - 2 * var(--lateral) - 24px));min-width:min(460px,calc(100vw - 16px));display:flex;flex-direction:column;z-index:2;transition:width .3s}
+.puxador{position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:60px;height:14px;cursor:ns-resize;display:grid;place-items:center}
+.puxador i{width:40px;height:4px;border-radius:4px;background:rgba(255,255,255,.18)}
+.mensagens{flex:1;overflow:auto;padding:18px 22px 8px;scroll-behavior:smooth}
+.msg{margin:0 0 16px;max-width:100%}
+.msg.voce{display:flex;justify-content:flex-end}
+.msg.voce .bolha{max-width:78%;padding:10px 14px;border-radius:16px 16px 4px 16px;background:linear-gradient(180deg,rgba(var(--c1),.13),rgba(var(--c1),.06));border:1px solid rgba(var(--c1),.22);white-space:pre-wrap;word-wrap:break-word}
+.msg.vega .corpo{padding:2px 2px;word-wrap:break-word}
+.msg.vega .corpo p{margin:0 0 8px}.msg.vega .corpo p:last-child{margin-bottom:0}
+.corpo h1,.corpo h2,.corpo h3{font-size:15px;margin:12px 0 6px;color:#fff}
+.corpo ul,.corpo ol{margin:4px 0 8px;padding-left:20px}.corpo li{margin:2px 0}
+.corpo code{font-family:"Cascadia Code",Consolas,monospace;font-size:12.5px;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:6px}
+.corpo pre{background:rgba(0,0,0,.35);border:1px solid var(--borda);border-radius:12px;padding:12px;overflow:auto}
+.corpo pre code{background:none;padding:0}
+.corpo a{color:var(--ciano)}
+.corpo table{border-collapse:collapse;margin:6px 0 10px;font-size:13px;width:100%}
+.corpo th,.corpo td{border:1px solid var(--borda);padding:5px 9px;text-align:left}.corpo th{background:rgba(255,255,255,.05)}
+.corpo strong{color:#fff}
+.fala{display:flex;gap:8px;align-items:flex-start;margin:10px 0 2px;padding:8px 12px;border-radius:12px;background:rgba(var(--c3),.07);border:1px solid rgba(var(--c3),.2);color:#ffd8b0;font-size:13.5px}
+.fala svg{width:15px;height:15px;flex:none;margin-top:3px;stroke:var(--ambar);fill:none;stroke-width:1.8}
+.ferramentas{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.ferr{font:11.5px "Cascadia Code",Consolas,monospace;color:var(--suave);padding:3px 9px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ferr b{color:#bfe9ff;font-weight:500}
+.anexos-msg{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.anexos-msg img{height:90px;border-radius:10px;border:1px solid var(--borda)}
+.anexos-msg span{font-size:12px;padding:4px 8px;border-radius:8px;background:rgba(0,0,0,.25)}
+.erro{color:var(--ruim);font-size:13px;margin:6px 0}
+.digitando{display:inline-flex;gap:5px;padding:6px 2px}.digitando i{width:6px;height:6px;border-radius:50%;background:var(--violeta);animation:pula 1.2s infinite}
+.digitando i:nth-child(2){animation-delay:.15s}.digitando i:nth-child(3){animation-delay:.3s}
+@keyframes pula{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.custo{font-size:11px;color:var(--apagado);margin-top:4px}
+.vazio{height:100%;display:grid;place-items:center;text-align:center;color:var(--apagado)}
+.vazio b{display:block;color:var(--suave);font-weight:500;font-size:15px;margin-bottom:4px}
+.faixa-aviso{margin:0 16px 8px;padding:8px 12px;border-radius:12px;background:rgba(var(--c3),.08);border:1px solid rgba(var(--c3),.25);color:#ffd2a6;font-size:12.5px;display:none}
+
+.compor{padding:10px 12px 12px;border-top:1px solid rgba(255,255,255,.06)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chip{display:flex;align-items:center;gap:6px;padding:4px 6px 4px 4px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid var(--borda);font-size:12px}
+.chip img{width:30px;height:30px;object-fit:cover;border-radius:7px}
+.chip .doc{width:30px;height:30px;border-radius:7px;display:grid;place-items:center;background:rgba(var(--c1),.12);font-size:10px;color:#bff4ff}
+.chip button{background:none;border:0;cursor:pointer;color:var(--suave);padding:0 2px}
+.linha{display:flex;align-items:flex-end;gap:8px}
+textarea{flex:1;resize:none;max-height:180px;min-height:44px;padding:11px 14px;border-radius:14px;border:1px solid var(--borda);background:rgba(0,0,0,.28);color:var(--texto);font:inherit;outline:none;line-height:1.45}
+textarea:focus{border-color:rgba(var(--c1),.45);box-shadow:0 0 0 3px rgba(var(--c1),.08)}
+.enviar{width:44px;height:44px;border-radius:14px;border:0;cursor:pointer;display:grid;place-items:center;background:linear-gradient(135deg,var(--ciano),var(--violeta));color:#021018;box-shadow:0 6px 22px rgba(var(--c1),.3);flex:none}
+.enviar svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.enviar.parar{background:linear-gradient(135deg,#ff8a6b,#ff5c8a);box-shadow:0 6px 22px rgba(255,92,138,.3)}
+.ouvindo{animation:ouvir 1.2s infinite}
+.olhos{position:fixed;right:16px;top:calc(64px + var(--topo));width:min(440px,34vw);z-index:3;padding:10px;display:none;flex-direction:column;gap:8px}
+.olhos.aberta{display:flex}
+.olhos .cab{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--suave)}
+.olhos .cab i{width:7px;height:7px;border-radius:50%;background:#ff5c8a;box-shadow:0 0 10px #ff5c8a;animation:ouvir 1.6s infinite}
+.olhos .cab button{margin-left:auto;background:none;border:0;color:var(--suave);cursor:pointer;font-size:14px;padding:0 4px}
+.olhos .url{font:11.5px "Cascadia Code",Consolas,monospace;color:#bfe9ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.olhos img{width:100%;border-radius:12px;border:1px solid var(--borda);cursor:zoom-in;background:#000;display:block}
+.olhos.grande{left:50%;right:auto;transform:translateX(-50%);width:min(1100px,92vw);top:calc(70px + var(--topo));z-index:6}
+.olhos.grande img{cursor:zoom-out;max-height:calc(100vh - 160px);object-fit:contain}
+@media (max-width:820px){.olhos{left:8px;right:8px;width:auto;top:calc(58px + var(--topo))}.olhos img{max-height:30vh;object-fit:contain}}
+.recado{position:fixed;left:50%;bottom:calc(var(--chat-alto,40vh) + 26px);transform:translateX(-50%);z-index:5;padding:9px 16px;border-radius:12px;font-size:13px;background:rgba(20,14,30,.85);border:1px solid rgba(var(--c3),.35);color:#ffd8b0;display:none;max-width:min(560px,90vw)}@keyframes ouvir{50%{box-shadow:0 0 0 6px rgba(var(--c1),.12)}}
+.soltar{position:fixed;inset:0;z-index:9;display:none;place-items:center;background:rgba(2,6,14,.6);backdrop-filter:blur(6px)}
+.soltar div{padding:30px 46px;border-radius:22px;border:1.5px dashed rgba(var(--c1),.6);color:#bff4ff;letter-spacing:.12em;text-transform:uppercase;font-size:13px}
+body.arrastando .soltar{display:grid}
+
+body.recolhida{--lateral:0px}
+body.recolhida .lateral{transform:translateX(calc(-100% - 30px))}
+.abrir-lateral{position:fixed;left:14px;top:calc(14px + var(--topo));z-index:3;display:none}
+body.recolhida .abrir-lateral{display:inline-grid}
+@media (max-width:820px){.estado{left:auto;right:14px;transform:none}:root{--lateral:0px}.lateral{transform:translateX(calc(-100% - 30px))}body.lateral-aberta .lateral{transform:none}.abrir-lateral{display:inline-grid}.consumo{display:none}.chat{width:calc(100vw - 16px)}}
+</style>
+</head>
+<body>
+<div id="palco"></div>
+<div class="vinheta"></div><div class="linhas"></div>
+<div id="aviso">carregando o rosto…</div>
+
+<div class="estado vidro"><i id="luz"></i><b id="nomeTopo">Vega</b><span id="estado">em espera</span></div>
+<div class="consumo vidro" id="consumo" title="Tokens desta conversa" style="display:none"></div>
+<button class="icone vidro abrir-lateral" id="abrirLateral" title="Conversas"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+
+<aside class="lateral vidro">
+  <div class="marca"><div class="sinal"></div><b id="nomeMarca">VEGA</b>
+    <button class="icone" id="recolher" title="Esconder a lista"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button></div>
+  <button class="nova" id="nova"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nova conversa</button>
+  <input class="busca" id="busca" placeholder="Buscar conversa…">
+  <div class="lista" id="lista"></div>
+</aside>
+
+<section class="chat vidro" id="chat">
+  <div class="puxador" id="puxador" title="Arraste para mudar a altura"><i></i></div>
+  <div class="mensagens" id="mensagens"></div>
+  <div class="faixa-aviso" id="faixaFora">Esta conversa está aberta em outro lugar agora (VS Code ou terminal). Mandar daqui ao mesmo tempo pode embaralhar as duas.</div>
+  <div class="compor">
+    <div class="chips" id="chips"></div>
+    <div class="linha">
+      <button class="icone" id="anexar" title="Anexar arquivo ou imagem"><svg viewBox="0 0 24 24"><path d="M21 11.5l-8.5 8.5a5 5 0 01-7-7L14 4.5a3.3 3.3 0 014.7 4.7l-8.6 8.6a1.7 1.7 0 01-2.4-2.4l7.9-7.9"/></svg></button>
+      <button class="icone" id="ditar" title="Falar em vez de digitar"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
+      <button class="icone ligado" id="voz" title="Voz ligada"><svg viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg></button>
+      <textarea id="campo" rows="1"></textarea>
+      <button class="enviar" id="enviar" title="Enviar"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </div>
+  </div>
+  <input type="file" id="arquivo" multiple hidden>
+</section>
+<div class="soltar"><div>Solte para anexar</div></div>
+<div class="recado" id="recado"></div>
+<div class="olhos vidro" id="olhos"><div class="cab"><i></i><span id="olhosTitulo">O que a Vega está vendo</span><button id="olhosFechar" title="Fechar">✕</button></div>
+  <div class="url" id="olhosUrl"></div><img id="olhosImg" alt="" title="Clique para ampliar"></div>
+
+<script type="importmap">{ "imports": { "three": "/libs/three/build/three.module.js", "three/addons/": "/libs/three/examples/jsm/" } }</script>
+<script>
+// o config.json (nome, voz, cores...) chega antes do rosto, que usa as cores
+window.BASE_3D = "/libs/three/"; window.MODELO_3D = "/modelos/rosto.glb";
+window.configPronta = fetch("/api/vega/config").then((r) => r.json()).catch(() => ({})).then((c) => {
+  window.VEGA = c;
+  const s = document.createElement("script"); s.type = "module"; s.src = "rosto.js"; document.body.appendChild(s);
+  return c;
+});
+setTimeout(() => {
+  if (window.rostoCarregado) return;
+  const a = document.getElementById("aviso"); a.style.opacity = 1; a.textContent = "o rosto não carregou (veja o console: F12)";
+}, 45000);
+</script>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const ICONE_FALA = '<svg viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7"/></svg>';
+let CFG = {}, sessao = null, trabalho = null, anexos = [], conversas = [], vozLigada = true, custoConversa = 0, tokensConversa = 0;
+
+async function api(url, corpo) {
+  const r = await fetch(url, corpo ? { method: "POST", headers: { "Content-Type": "application/json", "X-Vega": "1" }, body: JSON.stringify(corpo) } : {});
+  const j = await r.json();
+  if (!r.ok || j.erro) throw new Error(j.erro || "falhou");
+  return j;
+}
+
+// ---------------------------------------------------------------- texto com formatação (markdown simples)
+function md(texto) {
+  const blocos = [];
+  texto = texto.replace(/```[\w-]*\n?([\s\S]*?)```/g, (_, c) => { blocos.push(c); return `\u0000${blocos.length - 1}\u0000`; });
+  const linhas = esc(texto).split("\n"), saida = [];
+  let lista = null, tabela = [];
+  const inline = (s) => s.replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>").replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => /^https?:/.test(u) ? `<a href="${u}" target="_blank">${t}</a>` : `<code>${t}</code>`);
+  const fecharLista = () => { if (lista) { saida.push(`</${lista}>`); lista = null; } };
+  const fecharTabela = () => {
+    if (!tabela.length) return;
+    const ls = tabela.filter((l) => !/^\|?\s*:?-{2,}/.test(l)).map((l) => l.replace(/^\||\|$/g, "").split("|").map((c) => inline(c.trim())));
+    saida.push("<table>" + ls.map((l, i) => "<tr>" + l.map((c) => i ? `<td>${c}</td>` : `<th>${c}</th>`).join("") + "</tr>").join("") + "</table>");
+    tabela = [];
+  };
+  for (const l of linhas) {
+    if (/^\s*\|.*\|\s*$/.test(l)) { fecharLista(); tabela.push(l.trim()); continue; }
+    fecharTabela();
+    const bloco = l.match(/^\u0000(\d+)\u0000$/);
+    if (bloco) { fecharLista(); saida.push(`<pre><code>${esc(blocos[+bloco[1]])}</code></pre>`); continue; }
+    if (l.trim().startsWith("\u{1F50A}")) { fecharLista(); saida.push(`<div class="fala">${ICONE_FALA}<div>${inline(l.trim().slice(2).trim())}</div></div>`); continue; }
+    const h = l.match(/^(#{1,3})\s+(.*)/);
+    if (h) { fecharLista(); saida.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`); continue; }
+    const li = l.match(/^\s*([-*]|\d+\.)\s+(.*)/);
+    if (li) { const tipo = /\d/.test(li[1]) ? "ol" : "ul"; if (lista !== tipo) { fecharLista(); saida.push(`<${tipo}>`); lista = tipo; } saida.push(`<li>${inline(li[2])}</li>`); continue; }
+    fecharLista();
+    if (l.trim()) saida.push(`<p>${inline(l)}</p>`);
+  }
+  fecharLista(); fecharTabela();
+  return saida.join("").replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${esc(blocos[+i])}</code>`);
+}
+
+// ---------------------------------------------------------------- mensagens
+const caixa = $("#mensagens");
+function noFim() { return caixa.scrollHeight - caixa.scrollTop - caixa.clientHeight < 80; }
+function rolar(forcar) { if (forcar || noFim()) caixa.scrollTop = caixa.scrollHeight; }
+
+function separarAnexos(texto) {
+  const m = texto.match(/\n*\[Anexos, abra com Read:\]\n([\s\S]*)$/);
+  if (!m) return [texto, []];
+  return [texto.slice(0, m.index), m[1].split("\n").map((s) => s.trim()).filter(Boolean)];
+}
+function htmlAnexos(lista) {
+  if (!lista.length) return "";
+  return `<div class="anexos-msg">${lista.map((c) => {
+    const nome = c.split(/[\\/]/).pop();
+    return /\.(png|jpe?g|webp|gif)$/i.test(nome) && /dados[\\/]anexos/i.test(c) ? `<img src="/api/vega/anexo?n=${encodeURIComponent(nome)}" alt="">` : `<span>📎 ${esc(nome.replace(/^\d{8}-\d{6}-/, ""))}</span>`;
+  }).join("")}</div>`;
+}
+function msgVoce(texto, imagens = 0) {
+  const [t, lista] = separarAnexos(texto);
+  const d = document.createElement("div");
+  d.className = "msg voce";
+  d.innerHTML = `<div class="bolha">${esc(t)}${imagens ? `<div class="anexos-msg"><span>🖼 ${imagens} imagem(ns)</span></div>` : ""}${htmlAnexos(lista)}</div>`;
+  caixa.appendChild(d);
+}
+function msgVega(texto = "", ferramentas = []) {
+  const d = document.createElement("div");
+  d.className = "msg vega";
+  d.innerHTML = `<div class="ferramentas"></div><div class="corpo"></div>`;
+  d.querySelector(".corpo").innerHTML = md(texto);
+  ferramentas.forEach((f) => addFerr(d, f));
+  if (!ferramentas.length) d.querySelector(".ferramentas").style.display = "none";
+  caixa.appendChild(d);
+  return d;
+}
+function addFerr(d, f) {
+  const box = d.querySelector(".ferramentas");
+  box.style.display = "";
+  if (box.children.length >= 14) { box.firstChild.remove(); }
+  const s = document.createElement("span");
+  s.className = "ferr"; s.innerHTML = `<b>${esc(f.nome)}</b>${f.detalhe ? " · " + esc(f.detalhe) : ""}`; s.title = f.detalhe || "";
+  box.appendChild(s);
+}
+function vazio() {
+  caixa.innerHTML = `<div class="vazio"><div><b>${esc(CFG.saudacao || "Às suas ordens.")}</b>Comece uma conversa ou escolha uma ao lado.</div></div>`;
+}
+
+// ---------------------------------------------------------------- conversas
+async function carregarLista() {
+  try { conversas = await api("/api/vega/conversas"); } catch { conversas = []; }
+  desenharLista();
+}
+function desenharLista() {
+  const q = $("#busca").value.trim().toLowerCase();
+  $("#lista").innerHTML = conversas.filter((c) => !q || c.titulo.toLowerCase().includes(q)).map((c) =>
+    `<button class="item ${c.id === sessao ? "atual" : ""}" data-id="${c.id}"><span class="t">${esc(c.titulo)}</span>
+     <span class="q">${esc(c.quando)}</span>${c.aberta_fora ? '<span class="fora">● aberta em outro lugar</span>' : ""}</button>`).join("")
+    || `<p style="color:var(--apagado);font-size:12.5px;padding:8px">Nenhuma conversa.</p>`;
+  document.querySelectorAll(".item").forEach((b) => b.onclick = () => abrir(b.dataset.id));
+}
+$("#busca").oninput = desenharLista;
+
+async function abrir(id) {
+  if (trabalho) return;
+  sessao = id; custoConversa = 0; tokensConversa = 0;
+  location.hash = id ? "c=" + id : "";
+  desenharLista(); document.body.classList.remove("lateral-aberta");
+  const c = conversas.find((x) => x.id === id);
+  $("#faixaFora").style.display = c && c.aberta_fora ? "block" : "none";
+  if (!id) { vazio(); $("#campo").focus(); return; }
+  caixa.innerHTML = `<div class="vazio"><div class="digitando"><i></i><i></i><i></i></div></div>`;
+  try {
+    const msgs = await api("/api/vega/historico?id=" + encodeURIComponent(id));
+    caixa.innerHTML = "";
+    if (!msgs.length) vazio();
+    for (const m of msgs) m.de === "voce" ? msgVoce(m.texto, m.imagens) : msgVega(m.texto, m.ferramentas);
+    rolar(true);
+  } catch (e) { caixa.innerHTML = `<div class="erro">${esc(e.message)}</div>`; }
+  falando.ditas.clear();
+}
+$("#nova").onclick = () => abrir(null);
+
+// ---------------------------------------------------------------- envio e resposta ao vivo
+async function enviar() {
+  if (trabalho) return parar();
+  const texto = $("#campo").value.trim();
+  if (!texto && !anexos.length) return;
+  if (caixa.querySelector(".vazio")) caixa.innerHTML = "";
+  const caminhos = anexos.map((a) => a.caminho);
+  msgVoce(texto + (caminhos.length ? "\n\n[Anexos, abra com Read:]\n" + caminhos.join("\n") : ""));
+  $("#campo").value = ""; anexos = []; desenharChips(); ajustarCampo();
+  const d = msgVega();
+  const corpo = d.querySelector(".corpo");
+  corpo.innerHTML = `<div class="digitando"><i></i><i></i><i></i></div>`;
+  rolar(true);
+  rosto("pensando");
+  modoEnviar(true);
+  let texto_ = "", desde = 0, ultimoDesenho = 0;
+  const desenhar = (fim) => {
+    corpo.innerHTML = md(texto_) + (fim ? "" : `<div class="digitando"><i></i><i></i><i></i></div>`);
+    rolar();
+  };
+  try {
+    const r = await api("/api/vega/enviar", { sessao, texto, anexos: caminhos });
+    trabalho = r.trabalho;
+    let fim = false;
+    while (!fim) {
+      const lote = await api(`/api/vega/eventos?t=${trabalho}&desde=${desde}`);
+      desde = lote.proximo;
+      for (const ev of lote.eventos) {
+        if (ev.t === "sessao" && ev.id) { if (sessao !== ev.id) { sessao = ev.id; location.hash = "c=" + ev.id; carregarLista(); } }
+        else if (ev.t === "bloco") { if (texto_ && !texto_.endsWith("\n\n")) texto_ += "\n\n"; }
+        else if (ev.t === "texto") { texto_ += ev.d; falarNovasLinhas(texto_, false); }
+        else if (ev.t === "ferramenta") { addFerr(d, ev); if (!falando.ativo) rosto("pensando"); if (/^chrome·/.test(ev.nome) && /^https?:/.test(ev.detalhe || "")) $("#olhosUrl").textContent = ev.detalhe; }
+        else if (ev.t === "tela") mostrarOlhos(ev.arq);
+        else if (ev.t === "resultado") {
+          custoConversa += ev.custo || 0; tokensConversa += ev.tokens || 0;
+          const c = document.createElement("div"); c.className = "custo";
+          c.textContent = `${(ev.tokens || 0).toLocaleString("pt-BR")} tokens · ${ev.duracao}s`;
+          d.appendChild(c); desenharConsumo();
+        }
+        else if (ev.t === "erro") { const e = document.createElement("div"); e.className = "erro"; e.textContent = "⚠ " + ev.msg; d.appendChild(e); }
+        else if (ev.t === "fim") fim = true;
+      }
+      if (Date.now() - ultimoDesenho > 60 || fim) { desenhar(fim); ultimoDesenho = Date.now(); }
+    }
+    falarNovasLinhas(texto_, true);
+  } catch (e) {
+    const er = document.createElement("div"); er.className = "erro"; er.textContent = "⚠ " + e.message; d.appendChild(er);
+    corpo.innerHTML = md(texto_);
+  }
+  trabalho = null; modoEnviar(false);
+  if (filaFala.length) { $("#campo").value = filaFala.splice(0).join(" "); setTimeout(enviar, 300); }
+  if (!falando.ativo) rosto("ocioso");
+  carregarLista();
+}
+async function parar() { if (trabalho) await api("/api/vega/parar", { trabalho }).catch(() => {}); speechSynthesis.cancel(); }
+function modoEnviar(ocupado) {
+  const b = $("#enviar");
+  b.classList.toggle("parar", ocupado); b.title = ocupado ? "Parar" : "Enviar";
+  b.innerHTML = ocupado ? '<svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+}
+$("#enviar").onclick = enviar;
+$("#campo").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!trabalho) enviar(); } });
+function ajustarCampo() { const c = $("#campo"); c.style.height = "auto"; c.style.height = Math.min(180, c.scrollHeight) + "px"; }
+$("#campo").addEventListener("input", ajustarCampo);
+
+// ---------------------------------------------------------------- os olhos da Vega: o último print que ela tirou do navegador
+function mostrarOlhos(arq) {
+  $("#olhosImg").src = "/api/vega/tela?n=" + encodeURIComponent(arq);
+  $("#olhos").classList.add("aberta");
+}
+$("#olhosFechar").onclick = () => $("#olhos").classList.remove("aberta", "grande");
+$("#olhosImg").onclick = () => $("#olhos").classList.toggle("grande");
+
+// ---------------------------------------------------------------- rosto e voz
+const NOMES = { ocioso: "em espera", pensando: "pensando", falando: "falando" }, CORES = { ocioso: "#2ad8ff", pensando: "#8a5cff", falando: "#ff9a3c" };
+const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)).join(",");
+function aplicarConfig(c) {                                            // nome, artigo, saudação e cores vêm do config.json
+  CFG = c || {};
+  const nome = CFG.nome || "Vega", a = CFG.artigo || "a", cores = CFG.cores || {};
+  if (cores.espera) CORES.ocioso = cores.espera;
+  if (cores.pensando) CORES.pensando = cores.pensando;
+  if (cores.falando) CORES.falando = cores.falando;
+  const raiz = document.documentElement.style;
+  raiz.setProperty("--ciano", CORES.ocioso); raiz.setProperty("--violeta", CORES.pensando); raiz.setProperty("--ambar", CORES.falando);
+  raiz.setProperty("--c1", rgb(CORES.ocioso)); raiz.setProperty("--c2", rgb(CORES.pensando)); raiz.setProperty("--c3", rgb(CORES.falando));
+  document.title = nome; $("#nomeTopo").textContent = nome; $("#nomeMarca").textContent = nome.toUpperCase();
+  $("#olhosTitulo").textContent = `O que ${a} ${nome} está vendo`;
+  $("#campo").placeholder = `Fale com ${a} ${nome}…` + (matchMedia("(pointer: coarse)").matches ? "" : "  (Enter envia · Shift+Enter quebra linha)");
+}
+function rosto(e) {
+  window.rostoVega?.mudar(e);
+  $("#estado").textContent = NOMES[e];
+  $("#luz").style.background = CORES[e]; $("#luz").style.boxShadow = `0 0 14px ${CORES[e]}`;
+}
+const falando = { ativo: 0, ditas: new Set() };
+let vozEscolhida = null;
+function acharVoz() {
+  const vs = speechSynthesis.getVoices(), sem = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const lang = CFG.idioma || "pt-BR", quer = sem(CFG.voz || "");                                    // a voz do config.json (um pedaço do nome)
+  vozEscolhida = (quer && vs.find((v) => v.lang === lang && sem(v.name).includes(quer))) || (quer && vs.find((v) => sem(v.name).includes(quer)))
+    || vs.find((v) => v.lang === lang && /online/i.test(v.name)) || vs.find((v) => v.lang === lang) || vs.find((v) => v.lang?.startsWith(lang.slice(0, 2))) || null;
+}
+speechSynthesis.onvoiceschanged = acharVoz; acharVoz();
+function falarNovasLinhas(texto, fim) {
+  const linhas = texto.split("\n");
+  if (!fim) linhas.pop();                                       // a última linha ainda pode estar chegando
+  for (const l of linhas) {
+    const t = l.trim();
+    if (!t.startsWith("\u{1F50A}") || falando.ditas.has(t)) continue;
+    falando.ditas.add(t);
+    falar(t.slice(2).replace(/\*\*|__|`/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").trim());
+  }
+}
+function calarTudo() { speechSynthesis.cancel(); falando.ativo = 0; }
+function falar(t) {
+  if (!vozLigada || !t) return;
+  acharVoz();                                                    // as vozes Online do Edge chegam depois das locais: procura de novo a cada fala
+  const u = new SpeechSynthesisUtterance(t);
+  if (vozEscolhida) { u.voice = vozEscolhida; u.lang = vozEscolhida.lang; } else u.lang = CFG.idioma || "pt-BR";
+  u.onstart = () => { falando.ativo++; rosto("falando"); };
+  u.onboundary = () => window.rostoVega?.pulso(1);
+  const fim = () => { falando.ativo = Math.max(0, falando.ativo - 1); if (!falando.ativo && !speechSynthesis.speaking) rosto(trabalho ? "pensando" : "ocioso"); };
+  u.onend = fim; u.onerror = fim;
+  speechSynthesis.speak(u);
+}
+$("#voz").onclick = () => {
+  vozLigada = !vozLigada;
+  $("#voz").classList.toggle("ligado", vozLigada); $("#voz").title = vozLigada ? "Voz ligada" : "Voz desligada";
+  if (!vozLigada) { calarTudo(); rosto(trabalho ? "pensando" : "ocioso"); }
+};
+
+// ---------------------------------------------------------------- ditado (o Edge transcreve em português)
+let reconhecedor = null;
+$("#ditar").onclick = () => {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return recado("Este navegador não transcreve voz. Abra pelo atalho da área de trabalho (Edge).", 6000);
+  if (reconhecedor) { reconhecedor.stop(); return; }
+  const base = $("#campo").value;
+  reconhecedor = new SR(); reconhecedor.lang = CFG.idioma || "pt-BR"; reconhecedor.continuous = true; reconhecedor.interimResults = true;
+  reconhecedor.onresult = (e) => {
+    let txt = ""; for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
+    $("#campo").value = (base ? base + " " : "") + txt.trim(); ajustarCampo();
+  };
+  reconhecedor.onend = () => { reconhecedor = null; $("#ditar").classList.remove("ligado", "ouvindo"); $("#campo").focus(); };
+  reconhecedor.start(); $("#ditar").classList.add("ligado", "ouvindo");
+};
+
+// ---------------------------------------------------------------- anexos: botão, arrastar e colar
+async function anexar(arquivos) {
+  for (const f of arquivos) {
+    if (f.size > 40 * 1024 * 1024) { recado(`${f.name}: grande demais (máx. 40 MB)`); continue; }
+    const dados = await new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(f); });
+    try {
+      const r = await api("/api/vega/anexo", { nome: f.name || "imagem-colada.png", dados });
+      anexos.push({ ...r, previa: f.type.startsWith("image/") ? dados : "" });
+      desenharChips();
+    } catch (e) { recado("Não consegui anexar: " + e.message); }
+  }
+}
+function desenharChips() {
+  $("#chips").innerHTML = anexos.map((a, i) => `<span class="chip">${a.previa ? `<img src="${a.previa}">` : `<span class="doc">${esc((a.nome.split(".").pop() || "").slice(0, 4).toUpperCase())}</span>`}
+    ${esc(a.nome.length > 28 ? a.nome.slice(0, 26) + "…" : a.nome)}<button data-i="${i}" title="Tirar">✕</button></span>`).join("");
+  document.querySelectorAll(".chip button").forEach((b) => b.onclick = () => { anexos.splice(+b.dataset.i, 1); desenharChips(); });
+}
+$("#anexar").onclick = () => $("#arquivo").click();
+$("#arquivo").onchange = (e) => { anexar([...e.target.files]); e.target.value = ""; };
+let arrastos = 0;
+addEventListener("dragenter", (e) => { if (e.dataTransfer?.types?.includes("Files")) { arrastos++; document.body.classList.add("arrastando"); } });
+addEventListener("dragleave", () => { if (--arrastos <= 0) { arrastos = 0; document.body.classList.remove("arrastando"); } });
+addEventListener("dragover", (e) => e.preventDefault());
+addEventListener("drop", (e) => { e.preventDefault(); arrastos = 0; document.body.classList.remove("arrastando"); if (e.dataTransfer.files.length) anexar([...e.dataTransfer.files]); });
+addEventListener("paste", (e) => { const fs = [...(e.clipboardData?.files || [])]; if (fs.length) { e.preventDefault(); anexar(fs); } });
+
+// ---------------------------------------------------------------- consumo do plano
+function desenharConsumo() {
+  $("#consumo").style.display = tokensConversa ? "" : "none";
+  $("#consumo").innerHTML = `<span>Esta conversa <b>${(tokensConversa / 1000).toFixed(1)}k</b> tokens</span>`;
+}
+
+// ---------------------------------------------------------------- lateral e altura do chat
+$("#recolher").onclick = () => { document.body.classList.remove("lateral-aberta"); if (!matchMedia("(max-width:820px)").matches) document.body.classList.add("recolhida"); };
+$("#abrirLateral").onclick = () => { document.body.classList.remove("recolhida"); document.body.classList.toggle("lateral-aberta"); };
+addEventListener("click", (e) => {                                     // celular: tocar fora da lista fecha a lista
+  if (document.body.classList.contains("lateral-aberta") && !e.target.closest(".lateral, #abrirLateral")) document.body.classList.remove("lateral-aberta");
+});
+try { const a = localStorage.getItem("vega-chat-alto"); if (a) document.documentElement.style.setProperty("--chat-alto", a); } catch {}
+$("#puxador").onpointerdown = (e) => {
+  e.preventDefault();
+  const mover = (ev) => { const alto = Math.max(220, Math.min(innerHeight - 160, innerHeight - ev.clientY - 14)); document.documentElement.style.setProperty("--chat-alto", alto + "px"); };
+  const soltar = () => { removeEventListener("pointermove", mover); removeEventListener("pointerup", soltar);
+    window.rostoVega?.reenquadrar();
+    try { localStorage.setItem("vega-chat-alto", getComputedStyle(document.documentElement).getPropertyValue("--chat-alto")); } catch {} };
+  addEventListener("pointermove", mover); addEventListener("pointerup", soltar);
+};
+
+// ---------------------------------------------------------------- avisos rápidos
+const filaFala = [];                                                  // ditado que chegou enquanto ela ainda respondia
+function recado(txt, ms = 6000) {
+  const r = $("#recado"); r.textContent = txt; r.style.display = "block";
+  clearTimeout(recado.t); recado.t = setTimeout(() => r.style.display = "none", ms);
+}
+
+// ---------------------------------------------------------------- início
+(async () => {
+  aplicarConfig(await window.configPronta);
+  await carregarLista();
+  const id = new URLSearchParams(location.hash.slice(1)).get("c");
+  if (id) abrir(id); else vazio();
+  rosto("ocioso");
+  $("#campo").focus();
+})();
+</script>
+</body>
+</html>
