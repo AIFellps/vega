@@ -20,7 +20,14 @@ Uma página com rosto holográfico 3D para conversar com o **Claude Code**: chat
 - **Voz:** a Vega lê em voz alta as linhas que começam com 🔊 e mexe a boca junto. As vozes naturais do Edge funcionam aqui, como Thalita e Francisca.
 - **Microfone** para ditar em português, e **anexos** que você arrasta para a janela.
 - **Lista de conversas** com busca. São as mesmas conversas do terminal ou do VS Code, então dá para começar num lugar e seguir no outro.
-- **Consumo:** mostra quantos tokens a conversa aberta já usou.
+- **Várias conversas ao mesmo tempo:** dá para trocar de conversa enquanto uma resposta ainda está sendo escrita. Ela continua por trás e aparece de novo quando você volta.
+- **Modelo por conversa:** ao clicar em *Nova conversa*, você escolhe Sonnet, Opus, Haiku ou o padrão. A escolha vale para a conversa inteira.
+- **Barra de progresso:** em tarefas longas, aparece no topo com as etapas, o tempo e um cartão para cada agente trabalhando.
+- **Esteira:** diga "coloca na fila" e a tarefa espera numa fila. Ela roda quando você clica em ▶ ou num horário marcado (🌙). Se o limite do plano acabar no meio, a esteira espera zerar e continua de onde parou.
+- **Em segundo plano:** processos longos que o Claude deixa rodando aparecem numa coluna à direita, com as etapas, até terminarem.
+- **Consumo:** mostra o uso do plano (janela de 5 h e semana, com a hora em que zera) e o tamanho da conversa aberta. Passou de 200 mil tokens, ela avisa que é hora de abrir outra conversa.
+- **Modo projetor:** tecla **P** (ou o botão do projetor) deixa só o rosto, em tela cheia e com fundo preto puro, para projetar na parede. **Esc** sai.
+- **Monitor em pé:** com a tela na vertical, a lista vira gaveta e os painéis se reorganizam.
 - **Navegador (opcional):** com a extensão Claude in Chrome, a Vega mexe no seu Chrome e mostra numa janelinha o que está vendo.
 
 ## Antes de instalar
@@ -59,6 +66,7 @@ Tudo fica no `config.json`. Depois de mudar, feche e abra a Vega.
 | `pasta_trabalho` | Onde o Claude trabalha e de onde vêm as conversas (vazio = Documentos) | `"C:\\Projetos"` |
 | `modo_permissao` | Modo de permissão do Claude Code | `"auto"` |
 | `chrome` | Liga o controle do Chrome pela extensão Claude in Chrome | `true` |
+| `mostrar_limites` | Mostra no topo o uso do plano (5 h e semana) | `true` |
 | `porta` | Porta local da página | `8777` |
 
 **Sobre `modo_permissao`:** na Vega não aparece pergunta de permissão como no terminal. Com `"auto"`, o Claude decide sozinho o que é seguro fazer. Se esse modo não existir na sua conta, use `"acceptEdits"`: ele edita arquivos, mas para antes de rodar comandos.
@@ -69,7 +77,8 @@ Tudo fica no `config.json`. Depois de mudar, feche e abra a Vega.
 
 - A página abre só neste computador (`127.0.0.1`). Ninguém da rede ou da internet acessa.
 - O servidor só aceita pedidos da própria página.
-- Nada é enviado para fora além do que o próprio Claude Code já envia para a Anthropic.
+- Nada é enviado para fora além do que o próprio Claude Code já envia para a Anthropic. A única consulta extra é a do uso do plano: a Vega lê o login que o Claude Code já guarda e pergunta à Anthropic quanto do limite foi usado, como faz o `/usage`. Ela não altera nem renova esse login. Para desligar, use `"mostrar_limites": false`.
+- A esteira roda tarefas sem ninguém olhando, no mesmo `modo_permissao` do resto. Ela vem orientada a não publicar, não gastar e não apagar nada, mas só coloque na fila o que você rodaria sem supervisão.
 - O `config.json` e a pasta `dados/` (anexos, perfil do Edge, registros) ficam fora do Git.
 
 ## Problemas comuns

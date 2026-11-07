@@ -19,5 +19,6 @@
   "pasta_trabalho": "",
   "modo_permissao": "auto",
   "chrome": true,
+  "mostrar_limites": true,
   "porta": 8777
 }

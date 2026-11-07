@@ -308,13 +308,14 @@ function criarCenario(raio, tam) {
 
 let raioCena = 1;
 // espaço livre acima do chat (o palco ocupa a tela toda, para o fundo não mudar de cor embaixo do vidro)
-const LIVRE = () => { const c = document.getElementById("chat"); return c ? Math.max(220, PH() - c.offsetHeight - 40) : PH(); };
+const LIVRE = () => { const c = document.getElementById("chat"); return c && c.offsetHeight ? Math.max(220, PH() - c.offsetHeight - 40) : PH(); };   // chat escondido (modo projetor): rosto no meio da tela
 function enquadrar(raio) {
   raioCena = raio;
   const livre = LIVRE(), tg = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const porAltura = (raio * 0.9) / (tg * (livre / PH()));                // a cabeça enche a faixa livre (os anéis podem sair da tela)
   const porLargura = (raio * 0.82) / (tg * camera.aspect);                // tela estreita (celular): o rosto quase encosta nas laterais
-  camera.position.set(0, raio * 0.05, Math.max(porAltura, porLargura));
+  const folga = document.body.classList.contains("projetor") ? 1.6 : 1;   // na parede, o rosto com espaço em volta (anéis inteiros)
+  camera.position.set(0, raio * 0.05, Math.max(porAltura, porLargura) * folga);
   camera.lookAt(0, 0, 0);
   camera.setViewOffset(PW(), PH(), 0, (PH() - livre) / 2, PW(), PH());   // sobe a imagem para o meio da faixa livre
   ajustarPx();
@@ -326,7 +327,7 @@ let estado = "ocioso", ampAlvo = 0, falaSimulada = 0, pulsoExterno = 0;
 function mudar(e) { estado = e; }
 // a página chama pulso() a cada palavra falada; sem palavras chegando, as sílabas são simuladas enquanto fala
 function pulso(forca = 1) { pulsoExterno = Math.max(pulsoExterno, forca); }
-window.rostoVega = { mudar, pulso, estado: () => estado, reenquadrar: () => rosto && enquadrar(raioCena) };
+window.rostoVega = { mudar, pulso, estado: () => estado, reenquadrar: () => rosto && enquadrar(raioCena), fundo: (cor) => scene.background.set(cor) };
 
 function volume() {
   if (estado !== "falando") return 0;

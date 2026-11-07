@@ -10,6 +10,8 @@ import urllib.parse
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import esteira
+import uso
 import vega
 
 RAIZ = Path(__file__).resolve().parent
@@ -63,7 +65,7 @@ class Pedido(SimpleHTTPRequestHandler):
             acao = url.path[10:]
             if acao == "config":
                 c = vega.config()
-                return self._json({k: c[k] for k in ("nome", "artigo", "saudacao", "idioma", "voz", "cores")})
+                return self._json({k: c[k] for k in ("nome", "artigo", "saudacao", "idioma", "voz", "cores", "mostrar_limites")})
             if acao == "vivo":
                 return self._json({"ok": True})
             if acao == "conversas":
@@ -76,6 +78,16 @@ class Pedido(SimpleHTTPRequestHandler):
                 return self._mandar_arquivo(vega.arquivo_anexo(qs["n"]))
             if acao == "tela":
                 return self._mandar_arquivo(vega.arquivo_tela(qs["n"]))
+            if acao == "contexto":
+                return self._json(vega.contexto(qs["id"]))
+            if acao == "uso":                                   # limite do plano (5 h e semana); uso.py
+                return self._json(uso.limites() if vega.config()["mostrar_limites"] else {"limites": None})
+            if acao == "segundo-plano":
+                return self._json(vega.segundo_plano())
+            if acao == "esteira":
+                return self._json(esteira.listar())
+            if acao == "esteira/log":
+                return self._json(esteira.ver_log(qs["id"]))
         except (KeyError, ValueError, RuntimeError) as e:
             return self._json({"erro": str(e)}, 400)
         return self._json({"erro": "não conheço"}, 404)
@@ -87,7 +99,9 @@ class Pedido(SimpleHTTPRequestHandler):
             d = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
             acao = self.path[10:] if self.path.startswith("/api/vega/") else ""
             if acao == "enviar":
-                return self._json(vega.enviar(d.get("sessao") or None, d.get("texto", ""), d.get("anexos", [])))
+                return self._json(vega.enviar(d.get("sessao") or None, d.get("texto", ""), d.get("anexos", []), d.get("modelo")))
+            if acao == "esteira":
+                return self._json(esteira.acao(d))
             if acao == "parar":
                 return self._json(vega.parar(d["trabalho"]))
             if acao == "anexo":
@@ -98,5 +112,6 @@ class Pedido(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    esteira.vigiar_horario()                                  # no horário marcado na esteira, libera a fila sozinha
     print(f"Vega em http://127.0.0.1:{PORTA}  (Ctrl+C para desligar)")
     ThreadingHTTPServer(("127.0.0.1", PORTA), Pedido).serve_forever()
